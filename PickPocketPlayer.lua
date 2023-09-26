@@ -2831,12 +2831,17 @@ PickPocket.StealItem = function(pid)
        local Ind = 0
        for k,v in pairs(BaseItemName) do
            if Ind == INum then
-              inventoryHelper.removeExactItem(player.data.inventory, v.Name, 1)
-              inventoryHelper.addItem(Players[pid].data.inventory, v.Name, 1)
-              PickPocket.LoadItems(pid, player)
-              tes3mp.MessageBox(pid, -1, "You stole the item")
+              local EquipStatus = tes3mp.HasItemEquipped(player.pid, v.Name)
+              if EquipStatus ~= true then
+                 inventoryHelper.removeExactItem(player.data.inventory, v.Name, 1)
+                 inventoryHelper.addItem(Players[pid].data.inventory, v.Name, 1)
+                 PickPocket.LoadItems(pid, player)
+                 tes3mp.MessageBox(pid, -1, "You stole the item")
+              else
+                 tes3mp.MessageBox(pid, -1, "You Cannot steal equipped items")
+              end
            end
-        Ind = Ind + 1
+         Ind = Ind + 1
        end
    end
 end
