@@ -1,6 +1,8 @@
 local PickPocket = {}
+local BaseItemName = {}
 local SGuI = 44332250
 local INum = ""
+local player = ""
 
 local ItemLookupTable = {
    ["potion_ancient_brandy"] = "Ancient Dagoth Brandy",
@@ -2785,13 +2787,11 @@ PickPocket.InspectPlayer = function(eventStatus, pid, cellDescription, objects, 
 		if Players[PlayerPid] ~= nil and Players[PlayerPid]:IsLoggedIn() then		
 			Players[pid].data.targetPid = PlayerPid	
 			Players[PlayerPid].data.targetPid = pid	
-                        local player = Players[PlayerPid]	
+                        player = Players[PlayerPid]	
 			local IsSneaking = tes3mp.GetSneakState(pid)
                         local ItemList = ""
                         local Full = ""
                         BaseItemName = {}
-                        IsStri = tostring(IsSneaking)
-                        -- tes3mp.MessageBox(pid, -1, "Sneaking?" .. "\n" .. IsStri)
                         if IsSneaking ~= false then
                            for index, currentItem in pairs(player.data.inventory) do
                                for k,v in pairs(currentItem) do
@@ -2818,7 +2818,7 @@ customEventHooks.registerHandler("OnGUIAction", function(eventStatus, pid, idGui
           if tonumber(data) >= 0 then
              if tonumber(data) <= 1000 then
                 INum = tonumber(data)
-                   return PickPocket.ShowInp(pid)
+                return PickPocket.StealItem(pid)
              end
           end
         end
@@ -2826,8 +2826,32 @@ customEventHooks.registerHandler("OnGUIAction", function(eventStatus, pid, idGui
   end
 end)
 
-PickPocket.ShowInp = function(pid)
-     tes3mp.MessageBox(pid, -1, "Non function at this moment")
+PickPocket.StealItem = function(pid)
+    if Players[pid] ~= nil and Players[pid]:IsLoggedIn() then
+       local Ind = 0
+       for k,v in pairs(BaseItemName) do
+           if Ind == INum then
+              inventoryHelper.removeExactItem(player.data.inventory, v.Name, 1)
+              inventoryHelper.addItem(Players[pid].data.inventory, v.Name, 1)
+              PickPocket.LoadItems(pid, player)
+              tes3mp.MessageBox(pid, -1, "You stole the item")
+           end
+        Ind = Ind + 1
+       end
+   end
+end
+
+PickPocket.LoadItems = function(pid, TargetPlay)
+    if Players[pid] ~= nil and Players[pid]:IsLoggedIn() then
+       TargetPlay:LoadInventory()
+       TargetPlay:LoadEquipment()
+       TargetPlay:LoadQuickKeys()
+       TargetPlay:LoadSpellbook()
+       Players[pid]:LoadInventory()
+       Players[pid]:LoadEquipment()
+       Players[pid]:LoadQuickKeys()
+       Players[pid]:LoadSpellbook()
+   end
 end
 
 customEventHooks.registerHandler("OnObjectActivate", PickPocket.InspectPlayer)
